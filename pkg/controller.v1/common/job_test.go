@@ -96,6 +96,16 @@ func TestDeletePodsAndServices(T *testing.T) {
 			wantPods:       &corev1.PodList{},
 			wantService:    &corev1.ServiceList{},
 		},
+		// This test reproduces the backoffLimit bug: when DeletePodsAndServices is called
+		// without JobFailed condition set (as happens in the jobExceedsLimit path before
+		// the fix), pods are deleted despite cleanPodPolicy: None.
+		// See: https://github.com/kubeflow/trainer/issues/3419
+		"Unfinished job with cleanPodPolicy None deletes pods (pre-fix backoffLimit bug)": {
+			cleanPodPolicy: apiv1.CleanPodPolicyNone,
+			jobCondition:   "",
+			wantPods:       &corev1.PodList{},
+			wantService:    &corev1.ServiceList{},
+		},
 	}
 	for name, tc := range cases {
 		T.Run(name, func(t *testing.T) {
